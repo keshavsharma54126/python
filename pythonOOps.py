@@ -253,3 +253,81 @@ class HumanWorker(Workable, Eatable, Sleepable):  # Implements all relevant inte
 class RobotWorker(Workable):  # Only implements the Workable interface
     def work(self):
         print("Robot worker working")
+
+# Dependeny Inversion principle
+
+
+class LightBulb:
+    def turn_on(self):
+        print("LightBulb: Bulb turned on")
+
+    def turn_off(self):
+        print("LightBulb : Bulb turned off")
+
+
+class Switch:
+    def __init__(self):
+        self.bulb = LightBulb()
+
+    def operate(self, on):
+        if on:
+            self.bulb.turn_on()
+        else:
+            self.bulb.turn_off()
+
+
+switch = Switch()
+switch.operate(True)
+
+# in the above example a highlevel module is using a lowlevel module which should not be the case because it
+# violtates the dip principle
+# below is the solution of the above problem
+
+
+class BulbCorrected(ABC):  # Abstraction (interface/abstract class)
+    @abstractmethod
+    def turn_on(self):
+        pass
+
+    @abstractmethod
+    def turn_off(self):
+        pass
+
+
+class LightBulbCorrected(BulbCorrected):  # Concrete implementation
+    def turn_on(self):
+        print("LightBulb: Bulb turned on")
+
+    def turn_off(self):
+        print("LightBulb: Bulb turned off")
+
+
+class FancyLightBulb(BulbCorrected):  # Another concrete implementation
+    def turn_on(self):
+        print("FancyLightBulb: Bulb turned on with extra flair!")
+
+    def turn_off(self):
+        print("FancyLightBulb: Bulb turned off gently")
+
+
+class SwitchCorrected:  # High-level module, depends on abstraction (Bulb)
+    def __init__(self, bulb: BulbCorrected):  # Dependency injection through constructor
+        self.bulb = bulb  # Depends on the Bulb abstraction
+
+    def operate(self, on):
+        if on:
+            self.bulb.turn_on()
+        else:
+            self.bulb.turn_off()
+
+
+# Usage
+bulb1 = LightBulbCorrected()
+bulb2 = FancyLightBulb()
+
+switch1 = SwitchCorrected(bulb1)  # Inject LightBulb dependency
+switch2 = SwitchCorrected(bulb2)  # Inject FancyLightBulb dependency
+
+switch1.operate(True)  # Output: LightBulb: Bulb turned on
+# Output: FancyLightBulb: Bulb turned on with extra flair!
+switch2.operate(True)
